@@ -105,16 +105,16 @@ class menu{
   private:
     button* currentButton;
     uint8_t curButtonPos=1;
-
+    void draw();
+    
   public:
     menu();
-    void left();
-    void right();
+    void left(const bool fast);
+    void right(const bool fast);
     void down();
     void up();
     void pushLong();
     void pushShort();
-    
 };
 
 
@@ -125,14 +125,7 @@ TFT TFTscreen = TFT(cs, dc, rst);
 //TFT TFTscreen=button::TFTscreen;
 
 void setup() {
-  TFTscreen.begin();
-  TFTscreen.setRotation(0);
-  TFTscreen.background(0, 0, 0);
 
-  TFTscreen.stroke(0,255,255);
-  TFTscreen.setTextSize(2);
-  TFTscreen.text("Dustins RC: ",0,0);//15 High continue 16
-  TFTscreen.setTextSize(5);
 }
 
 
@@ -210,7 +203,14 @@ void loop() {
 
 
 
-static void button::drawBasics(const uint8_t pos){
+static void button::drawBasics(const uint8_t pos){  TFTscreen.begin();
+  TFTscreen.setRotation(0);
+  TFTscreen.background(0, 0, 0);
+
+  TFTscreen.stroke(0,255,255);
+  TFTscreen.setTextSize(2);
+  TFTscreen.text("Dustins RC: ",0,0);//15 High continue 16
+  TFTscreen.setTextSize(5);
   button::setButtonColours();
   if(pos==3){
     for(int i=0;i<3;i++) {
@@ -304,19 +304,6 @@ void pushbutton::draw(const uint8_t pos, const bool active){
 }
 
 
-
-
-//after here continue
-/* reminder:
-class button{
-  private:
-    string name;
-    char* send;
-    button* next=NULL;
-    button* last=NULL;
-    button* up=NULL;
-};
-*/
 
 
 linselectbutton::linselectbutton(const String name_, const char* message_, const uint8_t maximum){
@@ -567,6 +554,15 @@ void submenubutton::right(const bool fast){
 
 
 menu::menu(){
+
+  TFTscreen.begin();
+  TFTscreen.setRotation(0);
+  TFTscreen.background(0, 0, 0);
+
+  TFTscreen.stroke(0,255,255);
+  TFTscreen.setTextSize(2);
+  TFTscreen.text("Dustins RC: ",0,0);
+
   //bedroomLamp
   static pushbutton bedroomlampoff("Off","");  
   static pushbutton bedroomlampon("On","");
@@ -606,37 +602,97 @@ menu::menu(){
 
 
   //MainMenu
-  static submenubutton bedroomlamp(const char* name_, const button* down_);
-  static submenubutton cupboardlamp(const char* name_, const button* down_);
-  bedroomlamp.setNext(&cupboardlamp);
-  static submenubutton cupboardlamp(const char* name_, const button* down_);
-  bedroomlamp.setNext(&cupboardlamp);
-  static submenubutton cupboardlamp(const char* name_, const button* down_);
-  bedroomlamp.setNext(&cupboardlamp);
-  bedroomlamp.setNext(&cupboardlamp);
+  static submenubutton Mediapi(const char* name_, &MediapiMusicon);
+  static submenubutton Livingroomlamp(const char* name_, &Livingroomlampon);
+  Mediapi.setNext(&Livingroomlamp);
+  static submenubutton cupboardlamp(const char* name_, &cupboardlamp);
+  Livingroomlamp.setNext(&cupboardlamp);
+  static submenubutton bedroomlamp(const char* name_, &bedroomlampon);
+  cupboardlamp.setNext(&bedroomlamp);
+  bedroomlamp.setNext(& Mediapi);
 
   //set current and display it
-
+  self.currentButton=&Mediapi;
+  self.curButtonPos=0;
+  
   //draw
-  //currentButton=;
+  self.draw();
+}
+next last
+
+void menu::draw(){
+  //button::setBackgroundColour();
+  button::drawBasics(3);
+  switch(self.curButtonPos){
+    case 0:
+      self.currentButton->draw(0, true);
+      self.currentButton->next->draw(1, false);
+      self.currentButton->next->next->draw(2, false);
+      break;
+    case 1:
+      self.currentButton->last->draw(0, false);
+      self.currentButton->draw(1, true);
+      self.currentButton->next->draw(2, false);
+      break;
+    case 2:
+    default:
+      self.curButtonPos=2;
+      self.currentButton->last->last->draw(0, false);
+      self.currentButton->last->draw(1, false);
+      self.currentButton->draw(2, true);
+  }
   
 }
 
-/*
-class menu{
-  private:
-    button* currentButton;
-    unit8_t curButtonPos=1;
 
-  public:
-    menu();
-    void left();
-    void right();
-    void down();
-    void up();
-    void pushLong();
-    void pushShort();
-    
+void menu::left(const bool fast){
+  self.currentButton->left(fast);
 }
-*/
+
+void menu::right(const bool fast){
+  self.currentButton->right(fast);
+}
+
+void menu::down(){
+  switch(self.curButtonPos){
+    case 0:
+    case 1:
+      button::DeActivate(self.curButtonPos++, false);
+      self.currentButton=self.currentButton->next;
+      button::DeActivate(self.curButtonPos, true);
+      break;
+    case 2:
+    default:
+      self.curButtonPos=2;
+      self.currentButton=self.currentButton->next;
+      self.draw();
+  }
+}
+
+void menu::up(){
+  switch(self.curButtonPos){
+    case 0:
+    default:
+      self.curButtonPos=0;
+      self.currentButton=self.currentButton->last;
+      self.draw();
+      break;
+    case 1:
+    case 2:
+      button::DeActivate(self.curButtonPos--, false);
+      self.currentButton=self.currentButton->last;
+      button::DeActivate(self.curButtonPos, true);
+  }
+}
+
+void menu::pushLong(){
+  self.curButtonPos=0;
+  self.currentButton=self.currentButton->up;
+  self.draw();
+}
+
+void menu::pushShort(){
+  self.currentButton->push();
+}
+
 
