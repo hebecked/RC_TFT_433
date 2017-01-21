@@ -10,14 +10,9 @@
 
 
 class button{
-  private:
-    static char buffer[50];
+  protected:
     String name;
-    button* next=NULL;
-    button* last=NULL;
-    button* up=NULL;
     
-    static void drawBasics(const uint8_t pos);
     static void setBackgroundColour();
     static void setButtonColours();
     static void setActiveColour();
@@ -26,19 +21,31 @@ class button{
     static void buttonText(const String text, const uint8_t pos, const bool big);
 
   public:
+
+    button* next=NULL;
+    button* last=NULL;
+    button* up=NULL;
+    
     //static TFT TFTscreen;
-    button(int _type);
+
+    button();
+    
+    static void DeActivate(const uint8_t pos, const bool active);
+    static void drawBasics(const uint8_t pos);
+    
     virtual button* push();
-    virtual void longPush();
     virtual void left(const bool fast);
     virtual void right(const bool fast);
     virtual void draw(const uint8_t pos, const bool active);
+    
     void setNext(const button*);
-    static void DeActivate(const uint8_t pos, const bool active);
+    void setnext(button* next_);
+    void setlast(button* last_);
+    void setup(button* up_);
 };
 
 
-class pushbutton: button{
+class pushbutton: public button{
   private:
     char* message="";
     void send();
@@ -51,7 +58,7 @@ class pushbutton: button{
     void draw(const uint8_t pos, const bool active);
 };
 
-class linselectbutton: button{
+class linselectbutton: public button{
   private:
     char* message="";
     void send();
@@ -71,7 +78,7 @@ class linselectbutton: button{
     void draw(const uint8_t pos, const bool active);
 };
 
-class arrayselectbutton: button{
+class arrayselectbutton: public button{
   private:
     char* message="";
     void send();
@@ -81,7 +88,7 @@ class arrayselectbutton: button{
     uint8_t pos;
     
   public:
-    arrayselectbutton(const String name_, const char* message_, String* vals, uint8_t nvals);
+    arrayselectbutton(const String name_, const char* message_, const String* vals, const uint8_t nvals);
     button* push();
     void left(const bool fast);
     void right(const bool fast);
@@ -89,7 +96,7 @@ class arrayselectbutton: button{
 };
 
 
-class submenubutton: button{
+class submenubutton: public button{
   private:
     button* down;
 
@@ -118,11 +125,11 @@ class menu{
 };
 
 
-int a = 0;
-// char array to print to the screen
-char sensorPrintout[4];
 TFT TFTscreen = TFT(cs, dc, rst);
 //TFT TFTscreen=button::TFTscreen;
+menu MENU= menu();
+char buffer[50];
+
 
 void setup() {
 
@@ -131,79 +138,28 @@ void setup() {
 
 void loop() {
 
-  String sensorVal = String(a++);
 
-  sensorVal.toCharArray(sensorPrintout, 4);
-
-/*
- * determine with millis how long a button has been pressed if >250ms do something, if stick is on the far left do more
- * also use millis for sleep timer on the lamps (unsigned long) one counter plus states on and off and other counter overwrite/reset
- */
-
-//basic shape
-  TFTscreen.stroke(128,128,128);
-  TFTscreen.fill(64,64,64);
-  TFTscreen.rect(2, 20, 124, 45);  
-  TFTscreen.rect(2, 67, 124, 45);
-  TFTscreen.rect(2, 114, 124, 45);
-
-
-//slider
-  //text (has to be centered
-  TFTscreen.stroke(0,0,0);
-  TFTscreen.setTextSize(1);
-  TFTscreen.text("Test", 45, 24);//15 High continue 16
-
-
-
-//selector
-  //text (has to be centered
-  TFTscreen.stroke(0,0,0);
-  TFTscreen.setTextSize(1);
-  TFTscreen.text("Test2", 45, 71);//15 High continue 16
-  TFTscreen.stroke(0,0,128);
-  TFTscreen.fill(64,64,64);
-  TFTscreen.rect(40, 87, 40, 20);
-  TFTscreen.stroke(0,0,0);
-  TFTscreen.setTextSize(1);
-  TFTscreen.text("val1", 8, 94);//15 High continue 16
-  TFTscreen.text("val2", 43, 94);//15 High continue 16
-  TFTscreen.text("val3", 90, 94);//15 High continue 16
-
-
-//Submenu/pushbutton
-  TFTscreen.stroke(0,0,0);
-  TFTscreen.setTextSize(3);
-  TFTscreen.text("On/Off", 4, 118);//15 High continue 16
-
-  //TFTscreen.circle(100,100,4);
-  //TFTscreen.text(sensorPrintout, 0, 20);
-  button::DeActivate(1,true);
-  delay(1000);
-  //TFTscreen.stroke(0,0,255);
-  //TFTscreen.text(sensorPrintout, 0, 20);
-
-  //TFTscreen.stroke(255,0,0); // B, G,R
-  //TFTscreen.point(5,159);//x(lang), y(kurz)
-
-  //TFTscreen.stroke(255,255,0); // B,G,R
-  //int xPos = TFTscreen.width()/2;
-  //int yPos = TFTscreen.height()/2;
-
-  //TFTscreen.line(xPos, TFTscreen.height() - yPos, xPos, TFTscreen.height()); // vertical
-  //TFTscreen.line(xPos-4, TFTscreen.height() - yPos+4, xPos-2, TFTscreen.height()); // angled
-
-
-  //TFTscreen.noStroke(); // don't draw a line around the next rectangle
-  //TFTscreen.fill(0,255,0); // set the fill color to green
+  delay(5000);
+  MENU.up();
   
-//20 -45
+  delay(5000);
+  MENU.down();
+  
+  delay(5000);
+  MENU.pushShort();
 }
 
+void button::setnext(button* next_){
+  this->next =next_;
+}
+void button::setlast(button* last_){
+  this->last=last_;
+}
+void button::setup(button* up_){
+  this->up=up_;
+}
 
-
-
-static void button::drawBasics(const uint8_t pos){  TFTscreen.begin();
+static void button::drawBasics(const uint8_t pos){
   TFTscreen.setRotation(0);
   TFTscreen.background(0, 0, 0);
 
@@ -212,13 +168,14 @@ static void button::drawBasics(const uint8_t pos){  TFTscreen.begin();
   TFTscreen.text("Dustins RC: ",0,0);//15 High continue 16
   TFTscreen.setTextSize(5);
   button::setButtonColours();
-  if(pos==3){
+  if(pos>=3){
     for(int i=0;i<3;i++) {
       TFTscreen.rect(2, 20+i*47, 124, 45);
     }
     return;
+  }else{
+    TFTscreen.rect(2, 20+pos*47, 124, 45);
   }
-  TFTscreen.rect(2, 20+pos*47, 124, 45);
 }
 
 static void button::setBackgroundColour(){
@@ -269,23 +226,23 @@ static void button::buttonText(const String text,const uint8_t pos,const bool bi
 }
 
 void button::setNext(const button* next_){
-  self.next=next_;
-  next_->last=&self;
+  this->next=next_;
+  next_->setlast(this);
 }
 
 
 void pushbutton::send(){
-  //send self.message
+  //send this->message
 }
     
 pushbutton::pushbutton(const String name_, const char* message_){
-  self.message=message_;
-  self.name=name_;
+  this->message=message_;
+  this->name=name_;
 }
 
 button* pushbutton::push(){
-  self.send();
-  return self;
+  this->send();
+  return this;
 }
 
 void pushbutton::left(const bool fast){
@@ -298,27 +255,27 @@ void pushbutton::right(bool fast){
 
 void pushbutton::draw(const uint8_t pos, const bool active){
   if(active){
-    self.DeActivate(pos,active);
+    this->DeActivate(pos,active);
   }
-  button::buttonText(self.name, pos, true);
+  button::buttonText(this->name, pos, true);
 }
 
 
 
 
 linselectbutton::linselectbutton(const String name_, const char* message_, const uint8_t maximum){
-  self.message=message_;
-  self.name=name_;
-  self.maxVal=maximum;
+  this->message=message_;
+  this->name=name_;
+  this->maxVal=maximum;
 }
 
 void linselectbutton::send(){
   uint8_t offset=0;
   uint8_t i=0;
-  for(i=0;self.message[i]!='\0';i++){
-    button::buffer[i+offset]=self.message[i];
-    if(self.message[i]=='%'){
-      String Value = String(self.curVal);
+  for(i=0;this->message[i]!='\0';i++){
+    buffer[i+offset]=this->message[i];
+    if(this->message[i]=='%'){
+      String Value = String(this->curVal);
       Value.toCharArray(&(buffer[i]), 5);
       while(offset<5){
         if(buffer[i+offset]=='\0'){
@@ -332,7 +289,10 @@ void linselectbutton::send(){
 }
 
 button* linselectbutton::push(){
-  self.send();
+  this->send();
+}
+
+button::button(){
 }
 
 void linselectbutton::setSliderColours(){
@@ -347,72 +307,71 @@ void linselectbutton::setSliderBarColours(){
 
 void linselectbutton::draw(const uint8_t pos,bool active){
   if(active){
-    self.DeActivate(pos,active);
+    this->DeActivate(pos,active);
   }
-  button::buttonText(self.name, pos, false);
-  self.pos=pos;
-  uint8_t sliderPos=10 + self.sliderBarWidth * (self.curVal-self.minVal)/(double) (self.maxVal-self.minVal);
-  self.setSliderBarColours()
-  TFTscreen.rect(10, 47+pos*47, self.sliderBarWidth, 5);
-  self.setSliderColours()
+  button::buttonText(this->name, pos, false);
+  this->pos=pos;
+  uint8_t sliderPos=10 + this->sliderBarWidth * (this->curVal-this->minVal)/(double) (this->maxVal-this->minVal);
+  this->setSliderBarColours();
+  TFTscreen.rect(10, 47+pos*47, this->sliderBarWidth, 5);
+  this->setSliderColours();
   TFTscreen.circle(sliderPos ,49+pos*47, 4);
 }
 
 void linselectbutton::left(const bool fast){
-  uint8_t sliderPos=10 + self.sliderBarWidth * (self.curVal-self.minVal)/(double) (self.maxVal-self.minVal);
+  uint8_t sliderPos=10 + this->sliderBarWidth * (this->curVal-this->minVal)/(double) (this->maxVal-this->minVal);
   button::setButtonColours();
   TFTscreen.noStroke();
-  TFTscreen.circle(sliderPos ,49+self.pos*47, 4);
-  self.setSliderBarColours()
-  TFTscreen.rect(10, 47+self.pos*47, self.sliderBarWidth, 5);
+  TFTscreen.circle(sliderPos ,49+this->pos*47, 4);
+  this->setSliderBarColours();
+  TFTscreen.rect(10, 47+this->pos*47, this->sliderBarWidth, 5);
   if(fast){
-    uint8_t offset=self.maxVal-self.minVal/10;
-    if(self.curVal-self.minVal>offset){
-      self.curVal=-offset;
-    else{
-      self.curVal=self.minVal;
+    uint8_t offset=this->maxVal-this->minVal/10;
+    if(this->curVal-this->minVal>offset){
+      this->curVal=-offset;
+    }else{
+      this->curVal=this->minVal;
     }
   }else{
-    self.curVal--;
+    this->curVal--;
   }
-  sliderPos=10 + self.sliderBarWidth * (self.curVal-self.minVal)/(double) (self.maxVal-self.minVal);
-  self.setSliderColours()
-  TFTscreen.circle(sliderPos ,49+self.pos*47, 4);
+  sliderPos=10 + this->sliderBarWidth * (this->curVal-this->minVal)/(double) (this->maxVal-this->minVal);
+  this->setSliderColours();
+  TFTscreen.circle(sliderPos ,49+this->pos*47, 4);
 }
 
 void linselectbutton::right(const bool fast){
-  uint8_t sliderPos=10 + self.sliderBarWidth * (self.curVal-self.minVal)/(double) (self.maxVal-self.minVal);
+  uint8_t sliderPos=10 + this->sliderBarWidth * (this->curVal-this->minVal)/(double) (this->maxVal-this->minVal);
   button::setButtonColours();
   TFTscreen.noStroke();
-  TFTscreen.circle(sliderPos ,49+self.pos*47, 4);
-  self.setSliderBarColours()
-  TFTscreen.rect(10, 47+self.pos*47, self.sliderBarWidth, 5);
+  TFTscreen.circle(sliderPos ,49+this->pos*47, 4);
+  this->setSliderBarColours();
+  TFTscreen.rect(10, 47+this->pos*47, this->sliderBarWidth, 5);
   if(fast){
-    uint8_t offset=self.maxVal-self.minVal/10;
-    if(self.curVal+offset<self.maxVal){
-      self.curVal=+offset;
-    else{
-      self.curVal=self.maxVal;
+    uint8_t offset=this->maxVal-this->minVal/10;
+    if(this->curVal+offset<this->maxVal){
+      this->curVal=+offset;
+    }else{
+      this->curVal=this->maxVal;
     }
   }else{
-    self.curVal++;
+    this->curVal++;
   }
-  sliderPos=10 + self.sliderBarWidth * (self.curVal-self.minVal)/(double) (self.maxVal-self.minVal);
-  self.setSliderColours()
-  TFTscreen.circle(sliderPos ,49+self.pos*47, 4);
+  sliderPos=10 + this->sliderBarWidth * (this->curVal-this->minVal)/(double) (this->maxVal-this->minVal);
+  this->setSliderColours();
+  TFTscreen.circle(sliderPos ,49+this->pos*47, 4);
 }
 
 
 void arrayselectbutton::send(){
   uint8_t offset=0;
   uint8_t i=0;
-  for(i=0;self.message[i]!='\0';i++){
-    button::buffer[i+offset]=self.message[i];
-    if(self.message[i]=='%'){
-      String Value = String(self.curVal);
-      self.values[self.curPos].toCharArray(&(self.buffer[i]), 6);
+  for(i=0;this->message[i]!='\0';i++){
+    buffer[i+offset]=this->message[i];
+    if(this->message[i]=='%'){
+      this->values[this->curPos].toCharArray(&(buffer[i]), 6);
       while(offset<6){
-        if(self.buffer[i+offset]=='\0'){
+        if(buffer[i+offset]=='\0'){
           break;
         }
         offset++;
@@ -423,124 +382,124 @@ void arrayselectbutton::send(){
 }
     
 
-arrayselectbutton::arrayselectbutton(const char* name_, const char* message_, const String* vals, const uint8_t nvals){
-  self.arrayLength=nvals;
-  self.values=vals;
-  self.message=message_;
-  self.name=name_;
+arrayselectbutton::arrayselectbutton(const String name_, const char* message_, const String* vals, const uint8_t nvals){
+  this->arrayLength=nvals;
+  this->values=vals;
+  this->message=message_;
+  this->name=name_;
 }
 
 button* arrayselectbutton::push(){
-  self.send();
+  this->send();
 }
 
 void arrayselectbutton::draw(const uint8_t pos, bool active){
   if(active){
-    self.DeActivate(pos,active);
+    this->DeActivate(pos,active);
   }
-  button::buttonText(self.name, pos, false);
-  self.pos=pos;
+  button::buttonText(this->name, pos, false);
+  this->pos=pos;
   button::setButtonColours();
   TFTscreen.stroke(0,0,128);
-  TFTscreen.rect(40, 87 +self.pos*47, 40, 20);
+  TFTscreen.rect(40, 87 +this->pos*47, 40, 20);
   button::setStroke2TextColours();
   TFTscreen.setTextSize(1);
-  self.values[self.curPos].toCharArray(self.buffer, 6);
-  TFTscreen.text(buffer, 43, 47+self.pos*47);//15 High continue 16
-  if(self.curPos>0){
-    self.values[self.curPos-1].toCharArray(self.buffer, 6);
-    TFTscreen.text(self.buffer, 8, 47+self.pos*47);//15 High continue 16
+  this->values[this->curPos].toCharArray(buffer, 6);
+  TFTscreen.text(buffer, 43, 47+this->pos*47);//15 High continue 16
+  if(this->curPos>0){
+    this->values[this->curPos-1].toCharArray(buffer, 6);
+    TFTscreen.text(buffer, 8, 47+this->pos*47);//15 High continue 16
   }
-  if(self.arrayLength>self.curPos+1){
-    self.values[self.curPos+1].toCharArray(self.buffer, 6);
-    TFTscreen.text(self.buffer, 90, 47+self.pos*47);//15 High continue 16
+  if(this->arrayLength>this->curPos+1){
+    this->values[this->curPos+1].toCharArray(buffer, 6);
+    TFTscreen.text(buffer, 90, 47+this->pos*47);//15 High continue 16
   }
 }
 
 void arrayselectbutton::left(const bool fast){
   button::setStroke2ButtonFillColours();
   TFTscreen.setTextSize(1);
-  self.values[self.curPos].toCharArray(self.buffer, 6);
-  TFTscreen.text(buffer, 43, 47+self.pos*47);//15 High continue 16
-  if(self.arrayLength>self.curPos+1){
-    self.values[self.curPos+1].toCharArray(self.buffer, 6);
-    TFTscreen.text(self.buffer, 90, 47+self.pos*47);//15 High continue 16
+  this->values[this->curPos].toCharArray(buffer, 6);
+  TFTscreen.text(buffer, 43, 47+this->pos*47);//15 High continue 16
+  if(this->arrayLength>this->curPos+1){
+    this->values[this->curPos+1].toCharArray(buffer, 6);
+    TFTscreen.text(buffer, 90, 47+this->pos*47);//15 High continue 16
   }
-  if(self.curPos>0){
-    self.values[self.curPos-1].toCharArray(self.buffer, 6);
-    TFTscreen.text(self.buffer, 8, 47+self.pos*47);//15 High continue 16
-    self.curPos--;
+  if(this->curPos>0){
+    this->values[this->curPos-1].toCharArray(buffer, 6);
+    TFTscreen.text(buffer, 8, 47+this->pos*47);//15 High continue 16
+    this->curPos--;
   }
   if(fast){
-    self.curPos=0;
+    this->curPos=0;
   }
   button::setStroke2TextColours();
   TFTscreen.setTextSize(1);
-  self.values[self.curPos].toCharArray(self.buffer, 6);
-  TFTscreen.text(buffer, 43, 47+self.pos*47);//15 High continue 16
-  if(self.curPos>0){
-    self.values[self.curPos-1].toCharArray(self.buffer, 6);
-    TFTscreen.text(self.buffer, 8, 47+self.pos*47);//15 High continue 16
+  this->values[this->curPos].toCharArray(buffer, 6);
+  TFTscreen.text(buffer, 43, 47+this->pos*47);//15 High continue 16
+  if(this->curPos>0){
+    this->values[this->curPos-1].toCharArray(buffer, 6);
+    TFTscreen.text(buffer, 8, 47+this->pos*47);//15 High continue 16
   }
-  if(self.arrayLength>self.curPos+1){
-    self.values[self.curPos+1].toCharArray(self.buffer, 6);
-    TFTscreen.text(self.buffer, 90, 47+self.pos*47);//15 High continue 16
+  if(this->arrayLength>this->curPos+1){
+    this->values[this->curPos+1].toCharArray(buffer, 6);
+    TFTscreen.text(buffer, 90, 47+this->pos*47);//15 High continue 16
   }
 }
 
 void arrayselectbutton::right(const bool fast){
   button::setStroke2ButtonFillColours();
   TFTscreen.setTextSize(1);
-  self.values[self.curPos].toCharArray(self.buffer, 6);
-  TFTscreen.text(buffer, 43, 47+self.pos*47);//15 High continue 16
-  if(self.curPos>0){
-    self.values[self.curPos-1].toCharArray(self.buffer, 6);
-    TFTscreen.text(self.buffer, 8, 47+self.pos*47);//15 High continue 16
+  this->values[this->curPos].toCharArray(buffer, 6);
+  TFTscreen.text(buffer, 43, 47+this->pos*47);//15 High continue 16
+  if(this->curPos>0){
+    this->values[this->curPos-1].toCharArray(buffer, 6);
+    TFTscreen.text(buffer, 8, 47+this->pos*47);//15 High continue 16
   }
-  if(self.arrayLength>self.curPos+1){
-    self.values[self.curPos+1].toCharArray(self.buffer, 6);
-    TFTscreen.text(self.buffer, 90, 47+self.pos*47);//15 High continue 16
-    self.curPos++;
+  if(this->arrayLength>this->curPos+1){
+    this->values[this->curPos+1].toCharArray(buffer, 6);
+    TFTscreen.text(buffer, 90, 47+this->pos*47);//15 High continue 16
+    this->curPos++;
   }
   if(fast){
-    self.curPos=self.arrayLength-1;
+    this->curPos=this->arrayLength-1;
   }
   button::setStroke2TextColours();
   TFTscreen.setTextSize(1);
-  self.values[self.curPos].toCharArray(self.buffer, 6);
-  TFTscreen.text(self.buffer, 43, 47+self.pos*47);//15 High continue 16
-  if(self.curPos>0){
-    self.values[self.curPos-1].toCharArray(self.buffer, 6);
-    TFTscreen.text(self.buffer, 8, 47+self.pos*47);//15 High continue 16
+  this->values[this->curPos].toCharArray(buffer, 6);
+  TFTscreen.text(buffer, 43, 47+this->pos*47);//15 High continue 16
+  if(this->curPos>0){
+    this->values[this->curPos-1].toCharArray(buffer, 6);
+    TFTscreen.text(buffer, 8, 47+this->pos*47);//15 High continue 16
   }
-  if(self.arrayLength>self.curPos+1){
-    self.values[self.curPos+1].toCharArray(self.buffer, 6);
-    TFTscreen.text(self.buffer, 90, 47+self.pos*47);//15 High continue 16
+  if(this->arrayLength>this->curPos+1){
+    this->values[this->curPos+1].toCharArray(buffer, 6);
+    TFTscreen.text(buffer, 90, 47+this->pos*47);//15 High continue 16
   }
 }
 
 
 
-submenubutton::submenubutton(const char* name_, const button* down_){
-  self.name=name_;
-  self.down=down_;
-  self.down->up=&self;
-  button* next=self.down.next;
-  while(self.down != next){
-    next->up=&self;
-    next=self.down.next;
+submenubutton::submenubutton(const String name_, const button* down_){
+  this->name=name_;
+  this->down=down_;
+  this->down->setup(this);
+  button* next=this->down->next;
+  while(this->down != next){
+    next->setup(this);
+    next=this->down->next;
   }
 }
     
 button* submenubutton::push(){
-  return self.down;
+  return this->down;
 }
     
 void submenubutton::draw(const uint8_t pos,bool active){
   if(active){
-    self.DeActivate(pos,active);
+    this->DeActivate(pos,active);
   }
-  button::buttonText(self.name, pos, true);
+  button::buttonText(this->name, pos, true);
 }
     
 void submenubutton::left(const bool fast){
@@ -569,7 +528,7 @@ menu::menu(){
   bedroomlampoff.setNext(&bedroomlampon);
   static pushbutton bedroomlampmusicon("MOn","");
   bedroomlampon.setNext(&bedroomlampmusicon);
-  static pushbutton bedroomlampmusicff("MOff","");
+  static pushbutton bedroomlampmusicoff("MOff","");
   bedroomlampmusicon.setNext(&bedroomlampmusicoff);
   bedroomlampmusicoff.setNext(&bedroomlampoff); //add sleep light, wakeup light, timer light, same for music, music volume, different/all colours "volume"
   
@@ -588,7 +547,8 @@ menu::menu(){
   Livingroomlampoff.setNext(&Livingroomlampon);
   static linselectbutton Livingroomoverallbrightness("Brightness", "Brightness%", 100);
   Livingroomlampon.setNext(&Livingroomoverallbrightness);
-  static arrayselectbutton Livingroomsleep("Sleep Timer, "sleep%, {"1","2","5","10","15","20","30","45","60","90","120","180"}, 12);
+  const String sleeptimes[]={String("1"),String("2"),String("5"),String("10"),String("15"),String("20"),String("30"),String("45"),String("60"),String("90"),String("120"),String("180")};
+  static arrayselectbutton Livingroomsleep(String("Sleep Timer"), "sleep%", sleeptimes, 12);
   Livingroomoverallbrightness.setNext(&Livingroomsleep);
   Livingroomsleep.setNext(&Livingroomlampoff);
   //on, off, volume(ww,kw), sleep, sleeprampdown, rampup
@@ -602,97 +562,101 @@ menu::menu(){
 
 
   //MainMenu
-  static submenubutton Mediapi(const char* name_, &MediapiMusicon);
-  static submenubutton Livingroomlamp(const char* name_, &Livingroomlampon);
+  static submenubutton Mediapi("MediaPI", &MediapiMusicon);
+  static submenubutton Livingroomlamp("Livingroom", &Livingroomlampon);
   Mediapi.setNext(&Livingroomlamp);
-  static submenubutton cupboardlamp(const char* name_, &cupboardlamp);
+  static submenubutton cupboardlamp("Cupboard", &cupboardlamp);
   Livingroomlamp.setNext(&cupboardlamp);
-  static submenubutton bedroomlamp(const char* name_, &bedroomlampon);
+  static submenubutton bedroomlamp("Bedroom", &bedroomlampon);
   cupboardlamp.setNext(&bedroomlamp);
   bedroomlamp.setNext(& Mediapi);
 
   //set current and display it
-  self.currentButton=&Mediapi;
-  self.curButtonPos=0;
+  this->currentButton=&Mediapi;
+  this->curButtonPos=0;
   
   //draw
-  self.draw();
+  this->draw();
 }
-next last
 
 void menu::draw(){
   //button::setBackgroundColour();
   button::drawBasics(3);
-  switch(self.curButtonPos){
+  switch(this->curButtonPos){
     case 0:
-      self.currentButton->draw(0, true);
-      self.currentButton->next->draw(1, false);
-      self.currentButton->next->next->draw(2, false);
+      this->currentButton->draw(0, true);
+      this->currentButton->next->draw(1, false);
+      this->currentButton->next->next->draw(2, false);
       break;
     case 1:
-      self.currentButton->last->draw(0, false);
-      self.currentButton->draw(1, true);
-      self.currentButton->next->draw(2, false);
+      this->currentButton->last->draw(0, false);
+      this->currentButton->draw(1, true);
+      this->currentButton->next->draw(2, false);
       break;
     case 2:
     default:
-      self.curButtonPos=2;
-      self.currentButton->last->last->draw(0, false);
-      self.currentButton->last->draw(1, false);
-      self.currentButton->draw(2, true);
+      this->curButtonPos=2;
+      this->currentButton->last->last->draw(0, false);
+      this->currentButton->last->draw(1, false);
+      this->currentButton->draw(2, true);
   }
   
 }
 
 
 void menu::left(const bool fast){
-  self.currentButton->left(fast);
+  this->currentButton->left(fast);
 }
 
 void menu::right(const bool fast){
-  self.currentButton->right(fast);
+  this->currentButton->right(fast);
 }
 
 void menu::down(){
-  switch(self.curButtonPos){
+  switch(this->curButtonPos){
     case 0:
     case 1:
-      button::DeActivate(self.curButtonPos++, false);
-      self.currentButton=self.currentButton->next;
-      button::DeActivate(self.curButtonPos, true);
+      button::DeActivate(this->curButtonPos++, false);
+      this->currentButton=this->currentButton->next;
+      button::DeActivate(this->curButtonPos, true);
       break;
     case 2:
     default:
-      self.curButtonPos=2;
-      self.currentButton=self.currentButton->next;
-      self.draw();
+      this->curButtonPos=2;
+      this->currentButton=this->currentButton->next;
+      this->draw();
   }
 }
 
 void menu::up(){
-  switch(self.curButtonPos){
+  switch(this->curButtonPos){
     case 0:
     default:
-      self.curButtonPos=0;
-      self.currentButton=self.currentButton->last;
-      self.draw();
+      this->curButtonPos=0;
+      this->currentButton=this->currentButton->last;
+      this->draw();
       break;
     case 1:
     case 2:
-      button::DeActivate(self.curButtonPos--, false);
-      self.currentButton=self.currentButton->last;
-      button::DeActivate(self.curButtonPos, true);
+      button::DeActivate(this->curButtonPos--, false);
+      this->currentButton=this->currentButton->last;
+      button::DeActivate(this->curButtonPos, true);
   }
 }
 
 void menu::pushLong(){
-  self.curButtonPos=0;
-  self.currentButton=self.currentButton->up;
-  self.draw();
+  this->curButtonPos=0;
+  this->currentButton=this->currentButton->up;
+  this->draw();
 }
 
 void menu::pushShort(){
-  self.currentButton->push();
+  button* temp=this->currentButton->push();
+  if(temp!=NULL && temp!=this->currentButton){
+    this->currentButton=temp;
+    this->curButtonPos=0;
+    this->draw();
+  }
 }
 
 
