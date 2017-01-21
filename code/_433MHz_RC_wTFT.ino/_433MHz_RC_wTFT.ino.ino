@@ -575,33 +575,48 @@ menu::menu(){
   bedroomlampon.setNext(&bedroomlampmusicon);
   static pushbutton bedroomlampmusicff("MOff","");
   bedroomlampmusicon.setNext(&bedroomlampmusicoff);
-  bedroomlampmusicoff.setNext(&bedroomlampoff); //add sleep light, wakeup light, timer light, same for music, music volume, different colours "volume"
+  bedroomlampmusicoff.setNext(&bedroomlampoff); //add sleep light, wakeup light, timer light, same for music, music volume, different/all colours "volume"
   
   //CupboardLEDs
-  //on, off, volume(r,g,b), sleep, sleeprampdown, rampup
-
+  static pushbutton cupboardlampoff("Off","");  
+  static pushbutton cupboardlampon("On","");
+  cupboardlampoff.setNext(&cupboardlampon);
+  static linselectbutton cupboardoverallbrightness("Brightness", "Brightness%", 100);
+  cupboardlampon.setNext(&cupboardoverallbrightness);
+  cupboardoverallbrightness.setNext(&cupboardlampoff);
+  //on, off, volume(r,g,b,all), sleep, sleeprampdown, rampup
 
   //LivingroomLamp
+  static pushbutton Livingroomlampoff("Off","");  
+  static pushbutton Livingroomlampon("On","");
+  Livingroomlampoff.setNext(&Livingroomlampon);
+  static linselectbutton Livingroomoverallbrightness("Brightness", "Brightness%", 100);
+  Livingroomlampon.setNext(&Livingroomoverallbrightness);
+  static arrayselectbutton Livingroomsleep("Sleep Timer, "sleep%, {"1","2","5","10","15","20","30","45","60","90","120","180"}, 12);
+  Livingroomoverallbrightness.setNext(&Livingroomsleep);
+  Livingroomsleep.setNext(&Livingroomlampoff);
   //on, off, volume(ww,kw), sleep, sleeprampdown, rampup
 
-
   //Mediapi
+  static pushbutton MediapiMusicoff("Off","");  
+  static pushbutton MediapiMusicon("On","");
+  MediapiMusicoff.setNext(&MediapiMusicon);
+  MediapiMusicon.setNext(&MediapiMusicoff);
   //musicon, off, volume, sleep, 
 
 
   //MainMenu
-
+  static submenubutton bedroomlamp(const char* name_, const button* down_);
+  static submenubutton cupboardlamp(const char* name_, const button* down_);
+  bedroomlamp.setNext(&cupboardlamp);
+  static submenubutton cupboardlamp(const char* name_, const button* down_);
+  bedroomlamp.setNext(&cupboardlamp);
+  static submenubutton cupboardlamp(const char* name_, const button* down_);
+  bedroomlamp.setNext(&cupboardlamp);
+  bedroomlamp.setNext(&cupboardlamp);
 
   //set current and display it
-  static submenubutton bedroomlamp("Bedroom Lamp", &bedroomlampoff);
 
-  static pushbutton livingroomlampoff("Off","");
-
-  static submenubutton livingroomlamp("Livingroom Lamp", livingroomlamparray);
-  static submenubutton cupboardlamp();
-  static submenubutton mediapi();
-  button *mainarray[] = { &bedroomlamp, &livingroomlamp, &cupboardlamp, &mediapi };
-  static submenubutton main("", mainarray);
   //draw
   //currentButton=;
   
