@@ -33,10 +33,10 @@ class button{
     static void DeActivate(const uint8_t pos, const bool active);
     static void drawBasics(const uint8_t pos);
     
-    virtual button* push();
-    virtual void left(const bool fast);
-    virtual void right(const bool fast);
-    virtual void draw(const uint8_t pos, const bool active);
+    virtual button* push() {};
+    virtual void left(const bool fast) {};
+    virtual void right(const bool fast){};
+    virtual void draw(const uint8_t pos, const bool active) {};
     
     void setNext(const button*);
     void setnext(button* next_);
@@ -98,7 +98,7 @@ class arrayselectbutton: public button{
 
 class submenubutton: public button{
   private:
-    button* down;
+    const button* down;
 
   public:
     submenubutton(const String name_, const button* down_);
@@ -116,6 +116,7 @@ class menu{
     
   public:
     menu();
+    void start();
     void left(const bool fast);
     void right(const bool fast);
     void down();
@@ -132,21 +133,29 @@ char buffer[50];
 
 
 void setup() {
-
+  MENU.start();
 }
 
 
 void loop() {
 
 
-  delay(5000);
+  delay(1000);
   MENU.up();
   
-  delay(5000);
-  MENU.down();
+  delay(1000);
+  MENU.up();
   
-  delay(5000);
+  delay(1000);
   MENU.pushShort();
+
+  delay(1000);
+  MENU.down();
+
+  while(true){
+    delay(100);
+    MENU.right(false);
+  }
 }
 
 void button::setnext(button* next_){
@@ -218,6 +227,7 @@ static void button::buttonText(const String text,const uint8_t pos,const bool bi
     }else if(txtlength<10){
       txtsize=2;
     }
+    TFTscreen.setTextSize(txtsize);
     TFTscreen.text(buffer, 64-6*txtsize*txtlength/2 , 36+pos*47);//15 High continue 16
   }else{
     TFTscreen.setTextSize(1);
@@ -355,7 +365,9 @@ void linselectbutton::right(const bool fast){
       this->curVal=this->maxVal;
     }
   }else{
-    this->curVal++;
+    if(this->curVal<this->maxVal){
+      this->curVal++;
+    }
   }
   sliderPos=10 + this->sliderBarWidth * (this->curVal-this->minVal)/(double) (this->maxVal-this->minVal);
   this->setSliderColours();
@@ -487,7 +499,7 @@ submenubutton::submenubutton(const String name_, const button* down_){
   button* next=this->down->next;
   while(this->down != next){
     next->setup(this);
-    next=this->down->next;
+    next=next->next;
   }
 }
     
@@ -511,16 +523,14 @@ void submenubutton::right(const bool fast){
 }
 
 
-
 menu::menu(){
+}
+
+
+void menu::start(){
 
   TFTscreen.begin();
-  TFTscreen.setRotation(0);
-  TFTscreen.background(0, 0, 0);
 
-  TFTscreen.stroke(0,255,255);
-  TFTscreen.setTextSize(2);
-  TFTscreen.text("Dustins RC: ",0,0);
 
   //bedroomLamp
   static pushbutton bedroomlampoff("Off","");  
@@ -531,7 +541,7 @@ menu::menu(){
   static pushbutton bedroomlampmusicoff("MOff","");
   bedroomlampmusicon.setNext(&bedroomlampmusicoff);
   bedroomlampmusicoff.setNext(&bedroomlampoff); //add sleep light, wakeup light, timer light, same for music, music volume, different/all colours "volume"
-  
+
   //CupboardLEDs
   static pushbutton cupboardlampoff("Off","");  
   static pushbutton cupboardlampon("On","");
@@ -560,12 +570,11 @@ menu::menu(){
   MediapiMusicon.setNext(&MediapiMusicoff);
   //musicon, off, volume, sleep, 
 
-
   //MainMenu
   static submenubutton Mediapi("MediaPI", &MediapiMusicon);
   static submenubutton Livingroomlamp("Livingroom", &Livingroomlampon);
   Mediapi.setNext(&Livingroomlamp);
-  static submenubutton cupboardlamp("Cupboard", &cupboardlamp);
+  static submenubutton cupboardlamp("Cupboard", &cupboardlampon);
   Livingroomlamp.setNext(&cupboardlamp);
   static submenubutton bedroomlamp("Bedroom", &bedroomlampon);
   cupboardlamp.setNext(&bedroomlamp);
